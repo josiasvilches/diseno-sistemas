@@ -1,130 +1,352 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import List
+from datetime import datetime
 
-# Interface que define el contrato para los aprobadores
-class IAprobador(ABC):
-    def __init__(self):
-        self._siguiente: Optional[IAprobador] = None
+# ============================================
+# RECEPTOR - Interface y clases concretas de servidores
+# ============================================
 
-    def establecer_siguiente(self, aprobador: 'IAprobador') -> 'IAprobador':
-        """Establece el siguiente aprobador en la cadena"""
-        self._siguiente = aprobador
-        return aprobador
+class IServer(ABC):
+    """Interface que define las operaciones básicas de un servidor"""
 
     @abstractmethod
-    def procesar_solicitud(self, monto: float) -> str:
-        """Procesa la solicitud de crédito"""
+    def conectar(self) -> str:
         pass
 
-    def _puede_aprobar(self, monto: float) -> bool:
-        """Determina si este aprobador puede aprobar el monto"""
+    @abstractmethod
+    def desconectar(self) -> str:
+        pass
+
+    @abstractmethod
+    def encender(self) -> str:
+        pass
+
+    @abstractmethod
+    def apagar(self) -> str:
+        pass
+
+    @abstractmethod
+    def reiniciar(self) -> str:
+        pass
+
+    @abstractmethod
+    def guardar_log(self, mensaje: str) -> None:
         pass
 
 
-# Clase concreta: Ejecutivo de Cuenta
-class EjecutivoCuenta(IAprobador):
+# Servidor Web concreto
+class ServidorWeb(IServer):
     def __init__(self, nombre: str):
-        super().__init__()
         self.nombre = nombre
-        self.limite_aprobacion = 10000
+        self.estado = "apagado"
+        self.logs: List[str] = []
 
-    def procesar_solicitud(self, monto: float) -> str:
-        if monto <= self.limite_aprobacion:
-            return f"✓ {self.nombre} (Ejecutivo de Cuenta) aprueba el crédito de ${monto:,.2f}"
-        elif self._siguiente:
-            return self._siguiente.procesar_solicitud(monto)
-        else:
-            return f"✗ No hay aprobador disponible para el monto ${monto:,.2f}"
+    def conectar(self) -> str:
+        mensaje = f"[{self.nombre}] Estableciendo conexión SSH al servidor web..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def desconectar(self) -> str:
+        mensaje = f"[{self.nombre}] Cerrando conexión SSH del servidor web..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def encender(self) -> str:
+        self.estado = "encendido"
+        mensaje = f"[{self.nombre}] Iniciando servicios Apache y Nginx..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def apagar(self) -> str:
+        self.estado = "apagado"
+        mensaje = f"[{self.nombre}] Deteniendo servicios web y guardando sesiones..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def reiniciar(self) -> str:
+        mensaje = f"[{self.nombre}] Reiniciando servidor web y limpiando caché..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def guardar_log(self, mensaje: str) -> None:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.logs.append(f"[{timestamp}] {mensaje}")
+
+    def mostrar_logs(self) -> None:
+        print(f"\n--- Logs de {self.nombre} ---")
+        for log in self.logs:
+            print(log)
 
 
-# Clase concreta: Líder
-class Lider(IAprobador):
+# Servidor de Base de Datos concreto
+class ServidorBaseDatos(IServer):
     def __init__(self, nombre: str):
-        super().__init__()
         self.nombre = nombre
-        self.limite_aprobacion = 50000
+        self.estado = "apagado"
+        self.logs: List[str] = []
 
-    def procesar_solicitud(self, monto: float) -> str:
-        if monto <= self.limite_aprobacion:
-            return f"✓ {self.nombre} (Líder) aprueba el crédito de ${monto:,.2f}"
-        elif self._siguiente:
-            return self._siguiente.procesar_solicitud(monto)
-        else:
-            return f"✗ No hay aprobador disponible para el monto ${monto:,.2f}"
+    def conectar(self) -> str:
+        mensaje = f"[{self.nombre}] Conectando vía puerto 3306 al servidor de BD..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def desconectar(self) -> str:
+        mensaje = f"[{self.nombre}] Desconectando del servidor de BD..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def encender(self) -> str:
+        self.estado = "encendido"
+        mensaje = f"[{self.nombre}] Iniciando MySQL y cargando bases de datos..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def apagar(self) -> str:
+        self.estado = "apagado"
+        mensaje = f"[{self.nombre}] Ejecutando FLUSH TABLES y apagando MySQL..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def reiniciar(self) -> str:
+        mensaje = f"[{self.nombre}] Reiniciando MySQL y optimizando tablas..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def guardar_log(self, mensaje: str) -> None:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.logs.append(f"[{timestamp}] {mensaje}")
+
+    def mostrar_logs(self) -> None:
+        print(f"\n--- Logs de {self.nombre} ---")
+        for log in self.logs:
+            print(log)
 
 
-# Clase concreta: Gerente
-class Gerente(IAprobador):
+# Servidor de Aplicaciones concreto
+class ServidorAplicaciones(IServer):
     def __init__(self, nombre: str):
-        super().__init__()
         self.nombre = nombre
-        self.limite_aprobacion = 100000
+        self.estado = "apagado"
+        self.logs: List[str] = []
 
-    def procesar_solicitud(self, monto: float) -> str:
-        if monto <= self.limite_aprobacion:
-            return f"✓ {self.nombre} (Gerente) aprueba el crédito de ${monto:,.2f}"
-        elif self._siguiente:
-            return self._siguiente.procesar_solicitud(monto)
-        else:
-            return f"✗ No hay aprobador disponible para el monto ${monto:,.2f}"
+    def conectar(self) -> str:
+        mensaje = f"[{self.nombre}] Estableciendo conexión al servidor de aplicaciones..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def desconectar(self) -> str:
+        mensaje = f"[{self.nombre}] Cerrando conexión del servidor de aplicaciones..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def encender(self) -> str:
+        self.estado = "encendido"
+        mensaje = f"[{self.nombre}] Iniciando Tomcat y deployando aplicaciones..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def apagar(self) -> str:
+        self.estado = "apagado"
+        mensaje = f"[{self.nombre}] Deteniendo Tomcat y liberando recursos..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def reiniciar(self) -> str:
+        mensaje = f"[{self.nombre}] Reiniciando Tomcat y recargando aplicaciones..."
+        self.guardar_log(mensaje)
+        return mensaje
+
+    def guardar_log(self, mensaje: str) -> None:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.logs.append(f"[{timestamp}] {mensaje}")
+
+    def mostrar_logs(self) -> None:
+        print(f"\n--- Logs de {self.nombre} ---")
+        for log in self.logs:
+            print(log)
 
 
-# Clase concreta: Director
-class Director(IAprobador):
+# ============================================
+# COMANDO - Interface y comandos concretos
+# ============================================
+
+class IComando(ABC):
+    """Interface que define el contrato para todos los comandos"""
+
+    @abstractmethod
+    def ejecutar(self) -> None:
+        pass
+
+    @abstractmethod
+    def deshacer(self) -> None:
+        pass
+
+
+# Comando para encender servidor
+class ComandoEncender(IComando):
+    def __init__(self, servidor: IServer):
+        self.servidor = servidor
+
+    def ejecutar(self) -> None:
+        print("\n→ Ejecutando comando ENCENDER:")
+        print(self.servidor.conectar())
+        print(self.servidor.encender())
+        print(self.servidor.desconectar())
+        print("✓ Servidor encendido exitosamente")
+
+    def deshacer(self) -> None:
+        print("\n← Deshaciendo comando ENCENDER (apagando servidor):")
+        print(self.servidor.conectar())
+        print(self.servidor.apagar())
+        print(self.servidor.desconectar())
+
+
+# Comando para apagar servidor
+class ComandoApagar(IComando):
+    def __init__(self, servidor: IServer):
+        self.servidor = servidor
+
+    def ejecutar(self) -> None:
+        print("\n→ Ejecutando comando APAGAR:")
+        print(self.servidor.conectar())
+        print(self.servidor.apagar())
+        print(self.servidor.desconectar())
+        print("✓ Servidor apagado exitosamente")
+
+    def deshacer(self) -> None:
+        print("\n← Deshaciendo comando APAGAR (encendiendo servidor):")
+        print(self.servidor.conectar())
+        print(self.servidor.encender())
+        print(self.servidor.desconectar())
+
+
+# Comando para reiniciar servidor
+class ComandoReiniciar(IComando):
+    def __init__(self, servidor: IServer):
+        self.servidor = servidor
+
+    def ejecutar(self) -> None:
+        print("\n→ Ejecutando comando REINICIAR:")
+        print(self.servidor.conectar())
+        print(self.servidor.apagar())
+        print(self.servidor.reiniciar())
+        print(self.servidor.encender())
+        print(self.servidor.desconectar())
+        print("✓ Servidor reiniciado exitosamente")
+
+    def deshacer(self) -> None:
+        print("\n← Deshaciendo comando REINICIAR (volviendo al estado anterior):")
+        print("(Reiniciar no tiene deshacer específico)")
+
+
+# Comando macro (composición de comandos)
+class ComandoMacro(IComando):
     def __init__(self, nombre: str):
-        super().__init__()
         self.nombre = nombre
+        self.comandos: List[IComando] = []
 
-    def procesar_solicitud(self, monto: float) -> str:
-        # El Director puede aprobar cualquier monto
-        return f"✓ {self.nombre} (Director) aprueba el crédito de ${monto:,.2f}"
+    def agregar_comando(self, comando: IComando) -> None:
+        self.comandos.append(comando)
 
-
-# Cliente - Clase que solicita el crédito
-class SolicitudCredito:
-    def __init__(self, cliente: str, monto: float):
-        self.cliente = cliente
-        self.monto = monto
-
-    def procesar(self, aprobador: IAprobador) -> str:
+    def ejecutar(self) -> None:
         print(f"\n{'='*60}")
-        print(f"Cliente: {self.cliente}")
-        print(f"Monto solicitado: ${self.monto:,.2f}")
+        print(f"Ejecutando MACRO: {self.nombre}")
         print(f"{'='*60}")
-        resultado = aprobador.procesar_solicitud(self.monto)
-        print(resultado)
+        for comando in self.comandos:
+            comando.ejecutar()
+
+    def deshacer(self) -> None:
+        print(f"\n{'='*60}")
+        print(f"Deshaciendo MACRO: {self.nombre}")
         print(f"{'='*60}")
-        return resultado
+        # Deshacer en orden inverso
+        for comando in reversed(self.comandos):
+            comando.deshacer()
 
 
-# Ejemplo de uso
+# ============================================
+# INVOCADOR - Quien ejecuta los comandos
+# ============================================
+
+class InvocadorComandos:
+    """Invocador que ejecuta comandos y mantiene historial"""
+
+    def __init__(self):
+        self.historial: List[IComando] = []
+
+    def ejecutar_comando(self, comando: IComando) -> None:
+        comando.ejecutar()
+        self.historial.append(comando)
+
+    def deshacer_ultimo(self) -> None:
+        if self.historial:
+            comando = self.historial.pop()
+            comando.deshacer()
+        else:
+            print("\n⚠ No hay comandos para deshacer")
+
+    def mostrar_historial(self) -> None:
+        print(f"\n{'='*60}")
+        print("HISTORIAL DE COMANDOS")
+        print(f"{'='*60}")
+        if self.historial:
+            for i, comando in enumerate(self.historial, 1):
+                print(f"{i}. {comando.__class__.__name__}")
+        else:
+            print("(Historial vacío)")
+        print(f"{'='*60}")
+
+
+# ============================================
+# EJEMPLO DE USO
+# ============================================
+
 if __name__ == "__main__":
-    # Crear la cadena de responsabilidad
-    ejecutivo = EjecutivoCuenta("Juan Pérez")
-    lider = Lider("María González")
-    gerente = Gerente("Carlos Rodríguez")
-    director = Director("Ana Martínez")
-
-    # Establecer la cadena
-    ejecutivo.establecer_siguiente(lider).establecer_siguiente(gerente).establecer_siguiente(director)
-
     print("\n" + "="*60)
-    print("SISTEMA DE APROBACIÓN DE CRÉDITOS - BANCO")
+    print("SISTEMA DE GESTIÓN DE SERVIDORES - PATRÓN COMANDO")
     print("="*60)
 
-    # Casos de prueba
-    solicitudes = [
-        SolicitudCredito("Pedro López", 5000),      # Ejecutivo
-        SolicitudCredito("Laura Díaz", 25000),      # Líder
-        SolicitudCredito("Roberto Silva", 75000),   # Gerente
-        SolicitudCredito("Sofía Castro", 150000),   # Director
-        SolicitudCredito("Miguel Torres", 9999),    # Ejecutivo (límite)
-        SolicitudCredito("Carmen Ruiz", 50000),     # Líder (límite)
-    ]
+    # Crear servidores
+    servidor_web = ServidorWeb("WEB-SERVER-01")
+    servidor_bd = ServidorBaseDatos("DB-SERVER-01")
+    servidor_app = ServidorAplicaciones("APP-SERVER-01")
 
-    for solicitud in solicitudes:
-        solicitud.procesar(ejecutivo)
+    # Crear invocador
+    invocador = InvocadorComandos()
+
+    # Crear comandos individuales
+    print("\n### COMANDOS INDIVIDUALES ###")
+
+    comando1 = ComandoEncender(servidor_web)
+    invocador.ejecutar_comando(comando1)
+
+    comando2 = ComandoEncender(servidor_bd)
+    invocador.ejecutar_comando(comando2)
+
+    comando3 = ComandoReiniciar(servidor_app)
+    invocador.ejecutar_comando(comando3)
+
+    # Mostrar historial
+    invocador.mostrar_historial()
+
+    # Crear comando macro
+    print("\n\n### COMANDO MACRO ###")
+    macro_inicio_sistema = ComandoMacro("Inicio Completo del Sistema")
+    macro_inicio_sistema.agregar_comando(ComandoEncender(servidor_bd))
+    macro_inicio_sistema.agregar_comando(ComandoEncender(servidor_app))
+    macro_inicio_sistema.agregar_comando(ComandoEncender(servidor_web))
+
+    invocador.ejecutar_comando(macro_inicio_sistema)
+
+    # Deshacer último comando
+    print("\n\n### FUNCIONALIDAD DESHACER ###")
+    invocador.deshacer_ultimo()
+
+    # Mostrar logs finales
+    servidor_web.mostrar_logs()
+    servidor_bd.mostrar_logs()
+    servidor_app.mostrar_logs()
 
     print("\n" + "="*60)
-    print("FIN DEL PROCESAMIENTO")
+    print("FIN DE LA DEMOSTRACIÓN")
     print("="*60)
